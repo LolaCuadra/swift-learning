@@ -1,0 +1,155 @@
+import SwiftUI
+
+struct Flashcard: Identifiable {
+    let id: UUID
+    var question: String
+    var answer: String
+}
+
+struct FlashcardFolder: Identifiable {
+    let id: UUID
+    var name: String
+    var flashcards: [Flashcard]
+}
+
+struct FlashcardListView: View {
+    let flashcards: [Flashcard]
+
+    var body: some View {
+        List(flashcards) { flashcard in
+            NavigationLink(destination: Text("Detail View")) {
+                Text(flashcard.question)
+            }
+        }
+    }
+}
+
+struct FlashcardApp: View {
+    @State private var flashcards = [
+        Flashcard(id: UUID(), question: "What is Swift?", answer: "Swift is a programming language. (and a headache!)"),
+        Flashcard(id: UUID(), question: "What is SwiftUI?", answer: "SwiftUI is a declarative framework for building user interfaces. (and headaches!)")
+    ]
+    
+    @State private var folders = [
+        FlashcardFolder(id: UUID(), name: "Folder 1", flashcards: [Flashcard]())
+    ]
+    
+    @State private var selectedFolder: FlashcardFolder?
+    @State private var isEditingFolder = false
+    @State private var newName = ""
+    @State private var isAddingFolder = false
+    @State private var folderName = ""
+    @State private var isAddingFlashcard = false
+    @State private var question = ""
+    @State private var answer = ""
+
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(folders) { folder in
+                    NavigationLink(destination: FlashcardListView(flashcards: folder.flashcards)) {
+                        Text(folder.name)
+                    }
+                }
+            }
+            .navigationBarItems(
+                leading: Button(action: addFolder) {
+                    Image(systemName: "plus")
+                },
+                trailing: HStack {
+                    Button(action: {
+                        isEditingFolder = true
+                        newName = selectedFolder?.name ?? ""
+                    }) {
+                        Image(systemName: "pencil")
+                    }
+                    Button(action: {
+                        isAddingFlashcard = true
+                    }) {
+                        Image(systemName: "plus.square")
+                    }
+                }
+            )
+            .alert(isPresented: $isEditingFolder) {
+                Alert(
+                    title: Text("Rename Folder"),
+                    message: Text("Enter a new name for the folder"),
+                    primaryButton: .default(Text("Save")) {
+                        if let selectedFolder = selectedFolder {
+                            if let index = folders.firstIndex(where: { $0.id == selectedFolder.id }) {
+                                folders[index].name = newName
+                            }
+                        }
+                        isEditingFolder = false
+                    },
+                    secondaryButton: .cancel(Text("Cancel")) {
+                        isEditingFolder = false
+                    }
+                )
+            }
+            .sheet(isPresented: $isAddingFolder) {
+                createFolderView()
+            }
+            .sheet(isPresented: $isAddingFlashcard) {
+                createFlashcardView()
+            }
+        }
+    }
+    
+    private func addFolder() {
+        isAddingFolder = true
+    }
+    
+    private func createFlashcard() {
+        if let folderIndex = folders.firstIndex(where: { $0.id == selectedFolder?.id }) {
+            let newFlashcard = Flashcard(id: UUID(), question: question, answer: answer)
+            folders[folderIndex].flashcards.append(newFlashcard)
+        }
+        isAddingFlashcard = false
+    }
+
+    private func createFlashcardView() -> some View {
+        return NavigationView {
+            Form {
+                Section(header: Text("Flashcard Question")) {
+                    TextField("Enter question", text: $question)
+                }
+                Section(header: Text("Flashcard Answer")) {
+                    TextField("Enter answer", text: $answer)
+                }
+            }
+            .navigationBarItems(trailing: Button(action: createFlashcard) {
+                Text("Create")
+            })
+            .navigationTitle("New Flashcard")
+        }
+    }
+    
+    private func createFolderView() -> some View {
+        return NavigationView {
+            Form {
+                Section(header: Text("Folder Name")) {
+                    TextField("Enter folder name", text: $folderName)
+                }
+            }
+            .navigationBarItems(trailing: Button(action: createFolder) {
+                Text("Create")
+            })
+            .navigationTitle("New Folder")
+        }
+    }
+    
+    private func createFolder() {
+        folders.append(FlashcardFolder(id: UUID(), name: folderName, flashcards: [Flashcard]()))
+        isAddingFolder = false
+    }
+}
+
+@main
+struct FlashcardListApp: App {
+    var body: some Scene {
+        WindowGroup {
+            FlashcardApp()
+        }
+    }
+}
