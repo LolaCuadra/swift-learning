@@ -20,7 +20,7 @@ I used Xcode for this project and the SwiftUI library allows us to design apps i
 
 {Make a list of websites that you found helpful in this project}
 * [iOS App Dev Tutorials](https://developer.apple.com/tutorials/app-dev-training)
-* [how to make a flashcard app](h[ttp://url.link.goes.here](https://medium.com/@liyicky/how-to-make-a-flashcard-app-with-swift-ui-6e114dc03491))
+* [how to make a flashcard app](https://medium.com/@liyicky/how-to-make-a-flashcard-app-with-swift-ui-6e114dc03491))
 
 # Future Work
 * fix flashcard saving inside of folder
